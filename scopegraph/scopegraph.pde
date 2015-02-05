@@ -17,6 +17,9 @@ int[] aColors;
 LinkedList<Integer>[] dValues;
 int[] dColors;
 
+int[] aPinsToPlot = {0,5};
+int[] dPinsToPlot = {2,4};
+
 void setup () {
   frameRate(15);
   aValues = new LinkedList[nAnalogPins];
@@ -109,17 +112,18 @@ void serialEvent(Serial myPort) {
       for (int i=0; i < nTicks; i++) {
         int y = i * maxHeight / nTicks;
         line(0, y, width, y);
-        text(""+1023/nTicks*i, 0, y); 
+        text(""+1023/nTicks*(nTicks-i-1), 0, y); 
       }
       
       // analog graph: top 2/3
-      for (int i=0; i < nAnalogPins; i++) {
+      //for (int i=0; i < nAnalogPins; i++) {
+      for (int i : aPinsToPlot) {
         stroke(aColors[i],100,100);
         int prevVal = aValues[i].peek();
         int xPos = 1;
         for (Integer curVal : aValues[i]) {
-          float prevHeight = map(prevVal, 0, 1023, 3, 2*height/3);
-          float curHeight = map(curVal, 0, 1023, 3, 2*height/3);
+          float prevHeight = map(prevVal, 0, 1023, 2*height/3,3);
+          float curHeight = map(curVal, 0, 1023, 2*height/3,3);
           line(xPos-1, prevHeight, xPos, curHeight);
           xPos++;
           prevVal = curVal;
@@ -129,7 +133,8 @@ void serialEvent(Serial myPort) {
       // legend
       int lblY = 10;
       int dLbl = 25;
-      for (int i=0; i < nAnalogPins; i++) {
+      //for (int i=0; i < nAnalogPins; i++) {
+      for (int i : aPinsToPlot) {
         stroke(0);
         fill(aColors[i],100,100);
         rect(width-40,lblY,10,10);
@@ -141,15 +146,17 @@ void serialEvent(Serial myPort) {
       // digital graph: bottom 1/3
       // with legend
       int graphStart = 2*height/3+2;
-      int graphHeight = (height/3) / nDigitalPins;
-      for (int i=0; i < nDigitalPins; i++) {
+      //int graphHeight = (height/3) / nDigitalPins;
+      int graphHeight = (height/3) / dPinsToPlot.length;
+      //for (int i=0; i < nDigitalPins; i++) {
+      for (int i : dPinsToPlot) {
         stroke(dColors[i],50,100);
         fill(dColors[i],50,100);
         int prevVal = dValues[i].peek();
         int xPos = 1;
         for (Integer curVal : dValues[i]) {
-          float prevHeight = map(prevVal, 0, 1, graphStart, graphStart+graphHeight-2);
-          float curHeight = map(curVal, 0, 1, graphStart, graphStart+graphHeight-2);
+          float prevHeight = map(prevVal, 0, 1, graphStart+graphHeight-2, graphStart);
+          float curHeight = map(curVal, 0, 1, graphStart+graphHeight-2, graphStart);
           line(xPos-1, prevHeight, xPos, curHeight);
           xPos++;
           prevVal = curVal;

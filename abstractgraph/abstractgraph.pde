@@ -25,6 +25,9 @@ double[] aRadius;
 int[] aColors;
 int[] dColors;
 
+int[] aPinsToPlot = {0,5};
+int[] dPinsToPlot = {2,4};
+
 void setup() {
   aValues = new int[nAnalogPins];
   dValues = new int[nDigitalPins];
@@ -38,7 +41,7 @@ void setup() {
   dPos = new int[nDigitalPins][2];
   
   // set window size:
-  size(800, 600);
+  size(600, 400);
   frame.setResizable(false);
 
   // initialize positions
@@ -122,14 +125,16 @@ void serialEvent(Serial myPort) {
         fill(0, 50);
         stroke(0);
         rect(0,0,width, height);
-        for (int i=0; i<nAnalogPins; i++) {
+        //for (int i=0; i<nAnalogPins; i++) {
+        for (int i : aPinsToPlot) {
           float size = map(aValues[i], 0, 1023, 5, maxSize);
           float b = map(aValues[i],0,1023,100,50);
           fill(aColors[i], 100, b, 100);
           stroke(aColors[i], 100, b, 100);
           ellipse(aPos[i][0], aPos[i][1], size, size);
         }
-        for (int i=0; i<nDigitalPins; i++) {
+        //for (int i=0; i<nDigitalPins; i++) {
+        for (int i : dPinsToPlot) {
           float size = map(dValues[i], 0, 1, maxSize/7, maxSize/5);
           int b = (dValues[i] == 0)?50:100;
           fill(dColors[i], 50, b, 100);
@@ -142,9 +147,9 @@ void serialEvent(Serial myPort) {
         // speed also varies such that planets further out move at a slower angular rate (qualitative version of Kepler's Second Law) 
         double dTheta = Math.PI / 50; // speed
         int[] center = {width/2, height/2};
-        for (int i=0; i<aPos.length; i++) {
-          
-          double newRad = map(aValues[i],0,1023,100,250); // where the planet *should* be
+        //for (int i=0; i<aPos.length; i++) {
+        for (int i : aPinsToPlot) {
+          double newRad = map(aValues[i],0,1023,75,200); // where the planet *should* be
           double dRad = aRadius[i] - newRad;
           aRadius[i] -= dRad/5; // speed of radial motion
           if (aRadius[i] < 100)
@@ -152,7 +157,7 @@ void serialEvent(Serial myPort) {
           else if (aRadius[i] > 250)
             aRadius[i] = 250;
           
-          aAngle[i] += (dTheta * (300-aRadius[i])/50); // keeping max radius in mind
+          aAngle[i] += (dTheta * (200-aRadius[i])/50); // keeping max radius in mind
           if (aAngle[i] > Math.PI*2)
             aAngle[i] -= Math.PI*2;
           aPos[i][0] = (int)(aRadius[i] * Math.cos(aAngle[i])) + center[0]; // x
@@ -160,10 +165,12 @@ void serialEvent(Serial myPort) {
         }
         
         // digital 'moons' are pulled towards planets
-        for (int i=0; i<nDigitalPins; i++) {
+        //for (int i=0; i<nDigitalPins; i++) {
+        for (int i : dPinsToPlot) {
           PVector diff = new PVector(0,0);
           PVector moon = new PVector(dPos[i][0],dPos[i][1]);
-          for (int j=0; j<nAnalogPins; j++) {
+          //for (int j=0; j<nAnalogPins; j++) {
+          for (int j : aPinsToPlot) {
             PVector moonToPlanet = new PVector(dPos[i][0] - aPos[j][0],dPos[i][1] - aPos[j][1]);
             // f = g mm/r^2
             float r2 = moonToPlanet.magSq();

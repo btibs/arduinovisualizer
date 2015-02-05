@@ -11,4 +11,5 @@ To run this yourself, you will need an Arduino, the Arduino environment, and Pro
 1. Download the repository
 2. Upload arduinograph.ino to your Arduino
 3. Open either scopegraph.pde or abstractgraph.pde in Processing
-4. Run!
+4. Change the arrays `aPinsToPlot` and `dPinsToPlot` to include the analog and digital pins you would like to see displayed, respectively.
+5. Run!
