@@ -2,6 +2,7 @@
 
 import processing.serial.*;
 import java.util.LinkedList;
+import java.util.Iterator;
 
 Serial myPort;
 PFont f;
@@ -127,7 +128,9 @@ void draw() {
       prevVal = aValues[i].peek();
     
     int xPos = 1;
-    for (Integer curVal : aValues[i]) {
+    Iterator<Integer> it = aValues[i].descendingIterator();
+    while (it.hasNext()) {
+      Integer curVal = it.next();
       float prevHeight = map(prevVal, 0, 1023, 2*height/3,3);
       float curHeight = map(curVal, 0, 1023, 2*height/3,3);
       line(xPos-1, prevHeight, xPos, curHeight);
@@ -149,7 +152,6 @@ void draw() {
   }
   
   // digital graph: bottom 1/3
-  // with legend
   int graphStart = 2*height/3+2;
   int graphHeight = (height/3) / dPinsToPlot.length;
   for (int i : dPinsToPlot) {
@@ -160,7 +162,9 @@ void draw() {
       prevVal = dValues[i].peek();
     
     int xPos = 1;
-    for (Integer curVal : dValues[i]) {
+    Iterator<Integer> it = dValues[i].descendingIterator();
+    while (it.hasNext()) {
+      Integer curVal = it.next();
       float prevHeight = map(prevVal, 0, 1, graphStart+graphHeight-2, graphStart);
       float curHeight = map(curVal, 0, 1, graphStart+graphHeight-2, graphStart);
       line(xPos-1, prevHeight, xPos, curHeight);
