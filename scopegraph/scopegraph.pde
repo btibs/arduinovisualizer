@@ -17,11 +17,10 @@ int[] aColors;
 LinkedList<Integer>[] dValues;
 int[] dColors;
 
-int[] aPinsToPlot = {0,5};
+int[] aPinsToPlot = {0,1,2};
 int[] dPinsToPlot = {2,4};
 
 void setup () {
-  frameRate(15);
   aValues = new LinkedList[nAnalogPins];
   for (int i=0; i < nAnalogPins; i++) {
     aValues[i] = new LinkedList<Integer>();
@@ -66,13 +65,8 @@ void setup () {
   setupComplete = true;
 }
 
-void draw() {
-  // everything goes in serial
-}
-
-void serialEvent(Serial myPort) {
-  try{
-  String inString = myPort.readStringUntil('\n');
+void getData() {
+   String inString = myPort.readStringUntil('\n');
   if (inString != null && inString.startsWith("$")) {
     // format is like: "$A0:9,A1:88,D3:9,"
     inString = inString.substring(1);
@@ -96,79 +90,85 @@ void serialEvent(Serial myPort) {
           }
         }
       }
-    }
-    
-    if (setupComplete) {
-      // now that we have the data, plot it
-      background(0);
-      
-      // axis labels
-      stroke(50);
-      fill(50);
-      line(0,2*height/3,width,2*height/3);
-      
-      int maxHeight = 2*height/3;
-      int nTicks = 10;
-      for (int i=0; i < nTicks; i++) {
-        int y = i * maxHeight / nTicks;
-        line(0, y, width, y);
-        text(""+1023/nTicks*(nTicks-i-1), 0, y); 
-      }
-      
-      // analog graph: top 2/3
-      //for (int i=0; i < nAnalogPins; i++) {
-      for (int i : aPinsToPlot) {
-        stroke(aColors[i],100,100);
-        int prevVal = aValues[i].peek();
-        int xPos = 1;
-        for (Integer curVal : aValues[i]) {
-          float prevHeight = map(prevVal, 0, 1023, 2*height/3,3);
-          float curHeight = map(curVal, 0, 1023, 2*height/3,3);
-          line(xPos-1, prevHeight, xPos, curHeight);
-          xPos++;
-          prevVal = curVal;
-        }
-      }
-      
-      // legend
-      int lblY = 10;
-      int dLbl = 25;
-      //for (int i=0; i < nAnalogPins; i++) {
-      for (int i : aPinsToPlot) {
-        stroke(0);
-        fill(aColors[i],100,100);
-        rect(width-40,lblY,10,10);
-        textAlign(LEFT, TOP);
-        text("A" + i, width-25,lblY);
-        lblY += dLbl;
-      }
-      
-      // digital graph: bottom 1/3
-      // with legend
-      int graphStart = 2*height/3+2;
-      //int graphHeight = (height/3) / nDigitalPins;
-      int graphHeight = (height/3) / dPinsToPlot.length;
-      //for (int i=0; i < nDigitalPins; i++) {
-      for (int i : dPinsToPlot) {
-        stroke(dColors[i],50,100);
-        fill(dColors[i],50,100);
-        int prevVal = dValues[i].peek();
-        int xPos = 1;
-        for (Integer curVal : dValues[i]) {
-          float prevHeight = map(prevVal, 0, 1, graphStart+graphHeight-2, graphStart);
-          float curHeight = map(curVal, 0, 1, graphStart+graphHeight-2, graphStart);
-          line(xPos-1, prevHeight, xPos, curHeight);
-          xPos++;
-          prevVal = curVal;
-        }
-        textAlign(LEFT, TOP);
-        text("D" + i, 0,graphStart);
-        graphStart += graphHeight;
-      }
-    }
-    
+    } 
   }
-  } catch (Exception e) {
-    System.out.println(e.getMessage());
+}
+
+void drawAxis() {
+  // clear the graph for a new frame
+  background(0);
+  
+  // labels
+  stroke(50);
+  fill(50);
+  line(0,2*height/3,width,2*height/3);
+  
+  int maxHeight = 2*height/3;
+  int nTicks = 10;
+  for (int i=0; i < nTicks; i++) {
+    int y = i * maxHeight / nTicks;
+    line(0, y, width, y);
+    text(""+1023/nTicks*(nTicks-i-1), 0, y); 
+  }
+}
+
+void draw() {
+  if (!setupComplete)
+    return;
+  
+  getData();
+  drawAxis();
+    
+  // analog graph: top 2/3
+  for (int i : aPinsToPlot) {
+    stroke(aColors[i],100,100);
+    int prevVal = 0;
+    if (aValues[i].size() > 0)
+      prevVal = aValues[i].peek();
+    
+    int xPos = 1;
+    for (Integer curVal : aValues[i]) {
+      float prevHeight = map(prevVal, 0, 1023, 2*height/3,3);
+      float curHeight = map(curVal, 0, 1023, 2*height/3,3);
+      line(xPos-1, prevHeight, xPos, curHeight);
+      xPos++;
+      prevVal = curVal;
+    }
+  }
+  
+  // legend
+  int lblY = 10;
+  int dLbl = 25;
+  for (int i : aPinsToPlot) {
+    stroke(0);
+    fill(aColors[i],100,100);
+    rect(width-40,lblY,10,10);
+    textAlign(LEFT, TOP);
+    text("A" + i, width-25,lblY);
+    lblY += dLbl;
+  }
+  
+  // digital graph: bottom 1/3
+  // with legend
+  int graphStart = 2*height/3+2;
+  int graphHeight = (height/3) / dPinsToPlot.length;
+  for (int i : dPinsToPlot) {
+    stroke(dColors[i],50,100);
+    fill(dColors[i],50,100);
+    int prevVal = 0;
+    if (dValues[i].size() > 0)
+      prevVal = dValues[i].peek();
+    
+    int xPos = 1;
+    for (Integer curVal : dValues[i]) {
+      float prevHeight = map(prevVal, 0, 1, graphStart+graphHeight-2, graphStart);
+      float curHeight = map(curVal, 0, 1, graphStart+graphHeight-2, graphStart);
+      line(xPos-1, prevHeight, xPos, curHeight);
+      xPos++;
+      prevVal = curVal;
+    }
+    textAlign(LEFT, TOP);
+    text("D" + i, 0,graphStart);
+    graphStart += graphHeight;
   }
 }
